@@ -7,9 +7,11 @@ import TagItem from './tag-item';
 import TagsInput from './tags-input';
 import TranscludeAppend from './transclude-append';
 import tiUtil from './util';
+import tagsInputConfig from './configuration';
 
 export default angular.module('ngTagsInput', [])
   .service('tiUtil', tiUtil)
+  .provider('tagsInputConfig', tagsInputConfig)
   .directive('autoComplete', AutoComplete)
   .directive('tiAutocompleteMatch', AutoCompleteMatch)
   .directive('tiAutosize', AutoSize)

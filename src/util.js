@@ -33,7 +33,7 @@ class TiUtil {
     }
 
     var newArray = [];
-    array.forEach(function(item) {
+    array.forEach((item) => {
       var obj = {};
       obj[key] = item;
       newArray.push(obj);
@@ -113,10 +113,12 @@ class TiUtil {
   };
 
   simplePubSub = () => {
+    const $ctrl = this;
+
     var events = {};
     return {
       on(names, handler, first) {
-        names.split(' ').forEach(function(name) {
+        names.split(' ').forEach((name) => {
           if (!events[name]) {
             events[name] = [];
           }
@@ -128,7 +130,7 @@ class TiUtil {
       trigger(name, args) {
         var handlers = events[name] || [];
         handlers.every((handler) => {
-          return this.handleUndefinedResult(handler, true)(args);
+          return $ctrl.handleUndefinedResult(handler, true)(args);
         });
         return this;
       }

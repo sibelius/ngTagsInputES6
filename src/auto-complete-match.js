@@ -23,13 +23,13 @@ const tiAutocompleteMatch = ($sce, tiUtil) => ({
     scope.$$template = options.template;
     scope.$index = scope.$parent.$index;
 
-    scope.$highlight = function(text) {
+    scope.$highlight = (text) => {
       if (options.highlightMatchedText) {
         text = tiUtil.safeHighlight(text, autoComplete.getQuery());
       }
       return $sce.trustAsHtml(text);
     };
-    scope.$getDisplayText =  function() {
+    scope.$getDisplayText = () => {
       return tiUtil.safeToString(scope.data[options.displayProperty || options.tagsInput.displayProperty]);
     };
   }

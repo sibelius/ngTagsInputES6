@@ -23,7 +23,7 @@ const tiAutosize = (tagsInputConfig) => ({
 
     element.parent().append(span);
 
-    resize = function(originalValue) {
+    resize = (originalValue) => {
       var value = originalValue, width;
 
       if (angular.isString(value) && value.length === 0) {
@@ -45,7 +45,7 @@ const tiAutosize = (tagsInputConfig) => ({
     ctrl.$parsers.unshift(resize);
     ctrl.$formatters.unshift(resize);
 
-    attrs.$observe('placeholder', function(value) {
+    attrs.$observe('placeholder', (value) => {
       if (!ctrl.$modelValue) {
         resize(value);
       }

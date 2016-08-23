@@ -10,7 +10,7 @@
  */
 const tiTranscludeAppend = () => ({
   link(scope, element, attrs, ctrl, transcludeFn) {
-    transcludeFn(function(clone) {
+    transcludeFn((clone) => {
       element.append(clone);
     });
   },

@@ -33,6 +33,7 @@
  *    See https://docs.angularjs.org/api/ng/directive/ngClass for more information.
  */
 import { KEYS } from './constants';
+import template from './auto-complete.html';
 
 const autoComplete = ($document, $timeout, $sce, $q, tagsInputConfig, tiUtil) => ({
   restrict: 'E',
@@ -41,7 +42,7 @@ const autoComplete = ($document, $timeout, $sce, $q, tagsInputConfig, tiUtil) =>
     source: '&',
     matchClass: '&'
   },
-  templateUrl: 'ngTagsInput/auto-complete.html',
+  template,
   controller($scope, $element, $attrs) {
     $scope.events = tiUtil.simplePubSub();
 
@@ -58,16 +59,12 @@ const autoComplete = ($document, $timeout, $sce, $q, tagsInputConfig, tiUtil) =>
       displayProperty: [String, '']
     });
 
-    $scope.suggestionList = new SuggestionList($scope.source, $scope.options, $scope.events);
+    $scope.suggestionList = new SuggestionList($scope.source, $scope.options, $scope.events, tiUtil);
 
-    this.registerAutocompleteMatch = function() {
+    this.registerAutocompleteMatch = () => {
       return {
-        getOptions: function() {
-          return $scope.options;
-        },
-        getQuery: function() {
-          return $scope.suggestionList.query;
-        }
+        getOptions: () => $scope.options,
+        getQuery: () => $scope.suggestionList.query,
       };
     };
   },
@@ -79,20 +76,22 @@ const autoComplete = ($document, $timeout, $sce, $q, tagsInputConfig, tiUtil) =>
       events = scope.events,
       shouldLoadSuggestions;
 
+    console.log('link ac:', tagsInput, tagsInputCtrl);
+
     options.tagsInput = tagsInput.getOptions();
 
-    shouldLoadSuggestions = function(value) {
+    shouldLoadSuggestions = (value) => {
       return value && value.length >= options.minLength || !value && options.loadOnEmpty;
     };
 
     scope.templateScope = tagsInput.getTemplateScope();
 
-    scope.addSuggestionByIndex = function(index) {
+    scope.addSuggestionByIndex = (index) => {
       suggestionList.select(index);
       scope.addSuggestion();
     };
 
-    scope.addSuggestion = function() {
+    scope.addSuggestion = () => {
       var added = false;
 
       if (suggestionList.selected) {
@@ -103,11 +102,11 @@ const autoComplete = ($document, $timeout, $sce, $q, tagsInputConfig, tiUtil) =>
       return added;
     };
 
-    scope.track = function(item) {
+    scope.track = (item) => {
       return item[options.tagsInput.keyProperty || options.tagsInput.displayProperty];
     };
 
-    scope.getSuggestionClass = function(item, index) {
+    scope.getSuggestionClass = (item, index) => {
       var selected = item === suggestionList.selected;
       return [
         scope.matchClass({$match: item, $index: index, $selected: selected}),
@@ -116,10 +115,10 @@ const autoComplete = ($document, $timeout, $sce, $q, tagsInputConfig, tiUtil) =>
     };
 
     tagsInput
-      .on('tag-added tag-removed invalid-tag input-blur', function() {
+      .on('tag-added tag-removed invalid-tag input-blur', () => {
         suggestionList.reset();
       })
-      .on('input-change', function(value) {
+      .on('input-change', (value) => {
         if (shouldLoadSuggestions(value)) {
           suggestionList.load(value, tagsInput.getTags());
         }
@@ -127,13 +126,14 @@ const autoComplete = ($document, $timeout, $sce, $q, tagsInputConfig, tiUtil) =>
           suggestionList.reset();
         }
       })
-      .on('input-focus', function() {
+      .on('input-focus', () => {
         var value = tagsInput.getCurrentTagText();
         if (options.loadOnFocus && shouldLoadSuggestions(value)) {
           suggestionList.load(value, tagsInput.getTags());
         }
       })
-      .on('input-keydown', function(event) {
+      .on('input-keydown', (event) => {
+        console.log('autocomplete input-keydown: ', event)
         var key = event.keyCode,
           handled = false;
 
@@ -173,22 +173,22 @@ const autoComplete = ($document, $timeout, $sce, $q, tagsInputConfig, tiUtil) =>
         }
       });
 
-    events.on('suggestion-selected', function(index) {
+    events.on('suggestion-selected', (index) => {
       scrollToElement(element, index);
     });
   }
 });
 
-function SuggestionList(loadFn, options, events) {
+function SuggestionList(loadFn, options, events, tiUtil) {
   var self = {}, getDifference, lastPromise, getTagId;
 
-  getTagId = function() {
+  getTagId = () => {
     return options.tagsInput.keyProperty || options.tagsInput.displayProperty;
   };
 
-  getDifference = function(array1, array2) {
-    return array1.filter(function(item) {
-      return !tiUtil.findInObjectArray(array2, item, getTagId(), function(a, b) {
+  getDifference = (array1, array2) => {
+    return array1.filter((item) => {
+      return !tiUtil.findInObjectArray(array2, item, getTagId(), (a, b) => {
         if (options.tagsInput.replaceSpacesWithDashes) {
           a = tiUtil.replaceSpacesWithDashes(a);
           b = tiUtil.replaceSpacesWithDashes(b);
@@ -198,7 +198,7 @@ function SuggestionList(loadFn, options, events) {
     });
   };
 
-  self.reset = function() {
+  self.reset = () => {
     lastPromise = null;
 
     self.items = [];
@@ -207,7 +207,8 @@ function SuggestionList(loadFn, options, events) {
     self.selected = null;
     self.query = null;
   };
-  self.show = function() {
+
+  self.show = () => {
     if (options.selectFirstMatch) {
       self.select(0);
     }
@@ -216,13 +217,13 @@ function SuggestionList(loadFn, options, events) {
     }
     self.visible = true;
   };
-  self.load = tiUtil.debounce(function(query, tags) {
+  self.load = tiUtil.debounce((query, tags) => {
     self.query = query;
 
     var promise = $q.when(loadFn({ $query: query }));
     lastPromise = promise;
 
-    promise.then(function(items) {
+    promise.then((items) => {
       if (promise !== lastPromise) {
         return;
       }
@@ -240,13 +241,13 @@ function SuggestionList(loadFn, options, events) {
     });
   }, options.debounceDelay);
 
-  self.selectNext = function() {
+  self.selectNext = () => {
     self.select(++self.index);
   };
-  self.selectPrior = function() {
+  self.selectPrior = () => {
     self.select(--self.index);
   };
-  self.select = function(index) {
+  self.select = (index) => {
     if (index < 0) {
       index = self.items.length - 1;
     }

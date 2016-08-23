@@ -8,10 +8,13 @@
  * @description
  * Represents a tag item. Used internally by the tagsInput directive.
  */
-const tiTagItem = (itUtil) => ({
+import template from './tag-item.html';
+
+const tiTagItem = (tiUtil) => ({
   restrict: 'E',
   require: '^tagsInput',
-  template: '<ng-include src="$$template"></ng-include>',
+  template,
+  // template: '<ng-include src="$$template"></ng-include>',
   scope: {
     $scope: '=scope',
     data: '='
@@ -23,14 +26,14 @@ const tiTagItem = (itUtil) => ({
     scope.$$template = options.template;
     scope.$$removeTagSymbol = options.removeTagSymbol;
 
-    scope.$getDisplayText = function() {
+    scope.$getDisplayText = () => {
       return tiUtil.safeToString(scope.data[options.displayProperty]);
     };
-    scope.$removeTag = function() {
+    scope.$removeTag = () => {
       tagsInput.removeTag(scope.$index);
     };
 
-    scope.$watch('$parent.$index', function(value) {
+    scope.$watch('$parent.$index', (value) => {
       scope.$index = value;
     });
   }
